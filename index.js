@@ -24,6 +24,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     const shoeCollection = client.db("ecommerce1").collection("shoes");
+    const blogsCollection = client.db("ecommerce1").collection("blogs");
 
     app.get("/shoes", async (req, res) => {
       let query = {};
@@ -31,6 +32,12 @@ async function run() {
         query = { type: req.query.type };
       }
       const cursor = shoeCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    app.get("/blogs", async (req, res) => {
+      const cursor = blogsCollection.find();
       const result = await cursor.toArray();
       res.send(result);
     });
