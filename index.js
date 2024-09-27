@@ -26,7 +26,11 @@ async function run() {
     const shoeCollection = client.db("ecommerce1").collection("shoes");
 
     app.get("/shoes", async (req, res) => {
-      const cursor = shoeCollection.find();
+      let query = {};
+      if (req.query?.type) {
+        query = { type: req.query.type };
+      }
+      const cursor = shoeCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
     });
