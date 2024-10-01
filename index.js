@@ -24,7 +24,27 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     const shoeCollection = client.db("ecommerce1").collection("shoes");
+    const bagCollection = client.db("ecommerce1").collection("bags");
     const blogsCollection = client.db("ecommerce1").collection("blogs");
+
+    app.get("/bags", async (req, res) => {
+      let query = {};
+      if (req.query?.type) {
+        query = { type: req.query.type };
+      }
+      const cursor = bagCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    app.get("/bags/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+
+      const result = await bagCollection.findOne(query);
+
+      res.send(result);
+    });
 
     app.get("/shoes", async (req, res) => {
       let query = {};
