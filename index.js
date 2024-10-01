@@ -26,6 +26,28 @@ async function run() {
     const shoeCollection = client.db("ecommerce1").collection("shoes");
     const bagCollection = client.db("ecommerce1").collection("bags");
     const blogsCollection = client.db("ecommerce1").collection("blogs");
+    const accessoriesCollection = client
+      .db("ecommerce1")
+      .collection("accessories");
+
+    app.get("/accessories", async (req, res) => {
+      let query = {};
+      if (req.query?.type) {
+        query = { type: req.query.type };
+      }
+      const cursor = accessoriesCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    app.get("/accessories/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+
+      const result = await accessoriesCollection.findOne(query);
+
+      res.send(result);
+    });
 
     app.get("/bags", async (req, res) => {
       let query = {};
