@@ -35,6 +35,17 @@ async function run() {
       if (req.query?.type) {
         query = { type: req.query.type };
       }
+
+      if (req.query.minPrice || req.query.maxPrice) {
+        query.price = {};
+        if (req.query.minPrice) {
+          query.price.$gte = parseFloat(req.query.minPrice);
+        }
+        if (req.query.maxPrice) {
+          query.price.$lte = parseFloat(req.query.maxPrice);
+        }
+      }
+
       const cursor = accessoriesCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
@@ -54,6 +65,17 @@ async function run() {
       if (req.query?.type) {
         query = { type: req.query.type };
       }
+
+      if (req.query.minPrice || req.query.maxPrice) {
+        query.price = {};
+        if (req.query.minPrice) {
+          query.price.$gte = parseFloat(req.query.minPrice);
+        }
+        if (req.query.maxPrice) {
+          query.price.$lte = parseFloat(req.query.maxPrice);
+        }
+      }
+
       const cursor = bagCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
@@ -73,6 +95,17 @@ async function run() {
       if (req.query?.type) {
         query = { type: req.query.type };
       }
+
+      if (req.query.minPrice || req.query.maxPrice) {
+        query.price = {};
+        if (req.query.minPrice) {
+          query.price.$gte = parseFloat(req.query.minPrice);
+        }
+        if (req.query.maxPrice) {
+          query.price.$lte = parseFloat(req.query.maxPrice);
+        }
+      }
+
       const cursor = shoeCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
