@@ -135,7 +135,12 @@ async function run() {
     });
 
     app.get("/user", async (req, res) => {
-      const cursor = userCollection.find();
+      let query = {};
+      if (req.query?.email) {
+        query = { email: req.query.email };
+      }
+
+      const cursor = userCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
     });
