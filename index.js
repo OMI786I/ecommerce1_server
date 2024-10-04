@@ -140,6 +140,21 @@ async function run() {
       res.send(result);
     });
 
+    app.post("/user/check", async (req, res) => {
+      const { email } = req.body;
+      try {
+        const existingUser = await userCollection.findOne({ email: email });
+        if (existingUser) {
+          res.send({ exists: true });
+        } else {
+          res.send({ exists: false });
+        }
+      } catch (error) {
+        console.error("Error checking user:", error);
+        res.status(500).send("Error checking user");
+      }
+    });
+
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
     // // Send a ping to confirm a successful connection
