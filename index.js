@@ -27,6 +27,30 @@ const client = new MongoClient(uri, {
   },
 });
 
+//middlewares
+
+const logger = async (req, res, next) => {
+  console.log("called", req.host, req.originalUrl);
+  next();
+};
+
+const verifyToken = async (req, res, next) => {
+  const token = req.cookies?.token;
+  if (!token) {
+    return res.status(401).send({ message: " forbidden" });
+  }
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    //error
+    if (err) {
+      console.log(err);
+      return res.status(401).send({ message: "unauthorized" });
+    }
+    //if token is valid it will be decoded
+    console.log("value in the token", decoded);
+    next();
+  });
+};
+
 async function run() {
   try {
     const userCollection = client.db("ecommerce1").collection("user");
@@ -39,7 +63,7 @@ async function run() {
     const wishListCollection = client.db("ecommerce1").collection("wishList");
 
     //auth related apis
-    app.post("/jwt", async (req, res) => {
+    app.post("/jwt", logger, async (req, res) => {
       const user = req.body;
       console.log(user);
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
@@ -75,16 +99,15 @@ async function run() {
       }
     });
 
-    app.post("/wishlist", async (req, res) => {
+    app.post("/wishlist", logger, verifyToken, async (req, res) => {
       const wishList = req.body;
       console.log(wishList);
       const result = await wishListCollection.insertOne(wishList);
       res.send(result);
     });
 
-    app.get("/wishlist", async (req, res) => {
+    app.get("/wishlist", logger, verifyToken, async (req, res) => {
       const email = req.query.email;
-      console.log(req.cookies.token);
       query = { email: email };
       const result = await wishListCollection.find(query).toArray();
       res.send(result);
