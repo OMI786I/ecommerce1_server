@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const app = express();
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const port = process.env.PORT || 5000;
 
@@ -31,6 +32,13 @@ async function run() {
       .db("ecommerce1")
       .collection("accessories");
 
+    //auth related apis
+    app.post("/jwt", async (req, res) => {
+      const user = req.body;
+      console.log(user);
+      res.send(user);
+    });
+    //services related apis
     app.get("/accessories", async (req, res) => {
       let query = {};
       if (req.query?.type) {
