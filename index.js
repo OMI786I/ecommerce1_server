@@ -47,6 +47,7 @@ const verifyToken = async (req, res, next) => {
     }
     //if token is valid it will be decoded
     console.log("value in the token", decoded);
+    req.user = decoded;
     next();
   });
 };
@@ -99,7 +100,7 @@ async function run() {
       }
     });
 
-    app.post("/wishlist", logger, verifyToken, async (req, res) => {
+    app.post("/wishlist", logger, async (req, res) => {
       const wishList = req.body;
       console.log(wishList);
       const result = await wishListCollection.insertOne(wishList);
@@ -107,6 +108,10 @@ async function run() {
     });
 
     app.get("/wishlist", logger, verifyToken, async (req, res) => {
+      if (req.query.email !== req.user.email) {
+        return res.status(403).send({ message: "forbidden access" });
+      }
+
       const email = req.query.email;
       query = { email: email };
       const result = await wishListCollection.find(query).toArray();
