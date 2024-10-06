@@ -7,7 +7,12 @@ const port = process.env.PORT || 5000;
 let cookieParser = require("cookie-parser");
 // middleware
 
-app.use(cors());
+app.use(
+  cors({
+    origin: ["http://localhost:5173"],
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
@@ -31,6 +36,7 @@ async function run() {
     const accessoriesCollection = client
       .db("ecommerce1")
       .collection("accessories");
+    const wishListCollection = client.db("ecommerce1").collection("wishList");
 
     //auth related apis
     app.post("/jwt", async (req, res) => {
@@ -47,6 +53,43 @@ async function run() {
       res.send({ success: true });
     });
     //services related apis
+
+    //wish list
+
+    app.post("/wishlist/check", async (req, res) => {
+      const { id, email } = req.body;
+
+      try {
+        const existingProducts = await wishListCollection.findOne({
+          id: id,
+          email: email,
+        });
+        if (existingProducts) {
+          res.send({ exists: true });
+        } else {
+          res.send({ exists: false });
+        }
+      } catch (error) {
+        console.error("Error checking user:", error);
+        res.status(500).send("Error checking user");
+      }
+    });
+
+    app.post("/wishlist", async (req, res) => {
+      const wishList = req.body;
+      console.log(wishList);
+      const result = await wishListCollection.insertOne(wishList);
+      res.send(result);
+    });
+
+    app.get("/wishlist", async (req, res) => {
+      const email = req.query.email;
+      query = { email: email };
+      const result = await wishListCollection.find().toArray();
+      res.send(result);
+    });
+
+    //accessories
     app.get("/accessories", async (req, res) => {
       let query = {};
       if (req.query?.type) {
