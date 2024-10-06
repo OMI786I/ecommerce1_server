@@ -6,7 +6,7 @@ require("dotenv").config();
 const port = process.env.PORT || 5000;
 let cookieParser = require("cookie-parser");
 // middleware
-
+app.use(cookieParser());
 app.use(
   cors({
     origin: ["http://localhost:5173"],
@@ -84,6 +84,7 @@ async function run() {
 
     app.get("/wishlist", async (req, res) => {
       const email = req.query.email;
+      console.log(req.cookies.token);
       query = { email: email };
       const result = await wishListCollection.find(query).toArray();
       res.send(result);
