@@ -89,7 +89,7 @@ async function run() {
 
     // cart
 
-    app.post("/cart/check", async (req, res) => {
+    app.post("/cart/check", verifyToken, async (req, res) => {
       const { id, email } = req.body;
       try {
         const existingProducts = await cartCollection.findOne({
@@ -107,7 +107,7 @@ async function run() {
       }
     });
 
-    app.post("/cart", async (req, res) => {
+    app.post("/cart", verifyToken, async (req, res) => {
       const cartList = req.body;
       const result = await cartCollection.insertOne(cartList);
       res.send(result);
@@ -122,6 +122,14 @@ async function run() {
       const result = await cartCollection.find(query).toArray();
       res.send(result);
       console.log("debugging", req.query.email, req.user.email);
+    });
+
+    app.delete("/wishlist/:id", verifyToken, async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const query = { _id: new ObjectId(id) };
+      const result = await wishListCollection.deleteOne(query);
+      res.send(result);
     });
 
     //wish list
