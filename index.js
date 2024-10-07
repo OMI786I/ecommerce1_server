@@ -36,13 +36,14 @@ const logger = async (req, res, next) => {
 
 const verifyToken = async (req, res, next) => {
   const token = req.cookies?.token;
+  console.log("token", token);
   if (!token) {
     return res.status(401).send({ message: " forbidden" });
   }
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
     //error
     if (err) {
-      console.log(err);
+      console.log("Token verification error", err);
       return res.status(401).send({ message: "unauthorized" });
     }
     //if token is valid it will be decoded
@@ -78,6 +79,12 @@ async function run() {
       });
       res.send({ success: true });
     });
+
+    app.post("/logout", async (req, res) => {
+      const user = req.body;
+      console.log("logged out", user);
+      res.clearCookie("token", { maxAge: 0 }).send({ success: true });
+    });
     //services related apis
 
     // cart
@@ -106,11 +113,15 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/cart", async (req, res) => {
-      const cartList = req.query.email;
-      query = { email: cartList };
+    app.get("/cart", verifyToken, async (req, res) => {
+      if (req.query.email !== req.user.email) {
+        return res.status(403).send({ message: "forbidden access" });
+      }
+      const email = req.query.email;
+      query = { email: email };
       const result = await cartCollection.find(query).toArray();
       res.send(result);
+      console.log("debugging", req.query.email, req.user.email);
     });
 
     //wish list
