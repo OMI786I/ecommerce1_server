@@ -62,6 +62,7 @@ async function run() {
       .db("ecommerce1")
       .collection("accessories");
     const wishListCollection = client.db("ecommerce1").collection("wishList");
+    const cartCollection = client.db("ecommerce1").collection("cart");
 
     //auth related apis
     app.post("/jwt", logger, async (req, res) => {
@@ -72,12 +73,27 @@ async function run() {
       });
       res.cookie("token", token, {
         httpOnly: true,
-        secure: false,
-        samSite: "none",
+        secure: true,
+        sameSite: "none",
       });
       res.send({ success: true });
     });
     //services related apis
+
+    // cart
+
+    app.post("/cart", async (req, res) => {
+      const cartList = req.body;
+      const result = await cartCollection.insertOne(cartList);
+      res.send(result);
+    });
+
+    app.get("/cart", async (req, res) => {
+      const cartList = req.query.email;
+      query = { email: cartList };
+      const result = await cartCollection.find(query).toArray();
+      res.send(result);
+    });
 
     //wish list
 
