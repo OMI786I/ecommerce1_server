@@ -82,6 +82,24 @@ async function run() {
 
     // cart
 
+    app.post("/cart/check", async (req, res) => {
+      const { id, email } = req.body;
+      try {
+        const existingProducts = await cartCollection.findOne({
+          id: id,
+          email: email,
+        });
+        if (existingProducts) {
+          res.send({ exists: true });
+        } else {
+          res.send({ exists: false });
+        }
+      } catch (error) {
+        console.error("Error checking user:", error);
+        res.status(500).send("Error checking user");
+      }
+    });
+
     app.post("/cart", async (req, res) => {
       const cartList = req.body;
       const result = await cartCollection.insertOne(cartList);
