@@ -193,14 +193,34 @@ async function run() {
     });
 
     app.get("/wishlist", logger, verifyToken, async (req, res) => {
-      if (req.query.email !== req.user.email) {
-        return res.status(403).send({ message: "forbidden access" });
-      }
+      try {
+        if (req.query.email !== req.user.email) {
+          return res.status(403).send({ message: "forbidden access" });
+        }
 
-      const email = req.query.email;
-      query = { email: email };
-      const result = await wishListCollection.find(query).toArray();
-      res.send(result);
+        const email = req.query.email;
+        const page = parseInt(req.query.page) || 1; //
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+        const query = { email: email };
+
+        const totalItems = await wishListCollection.countDocuments(query);
+
+        const items = await wishListCollection
+          .find(query)
+          .skip(skip)
+          .limit(limit)
+          .toArray();
+
+        res.send({
+          totalItems,
+          page,
+          limit,
+          items,
+        });
+      } catch (error) {
+        res.status(500).send({ message: "Internal server error" });
+      }
     });
 
     //accessories
