@@ -132,6 +132,30 @@ async function run() {
       console.log("debugging", req.query.email, req.user.email);
     });
 
+    app.get("/cart/:id", verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await cartCollection.findOne(query);
+      res.send(result);
+    });
+
+    app.patch("/cart/:id", verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updatedCart = req.body;
+
+      const cart = {
+        $set: {
+          quantity: updatedCart.quantity,
+        },
+      };
+
+      const result = await cartCollection.updateOne(filter, cart, options);
+      res.send(result);
+      console.log(result);
+    });
+
     app.delete("/wishlist/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       console.log(id);
