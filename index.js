@@ -125,11 +125,32 @@ async function run() {
       if (req.query.email !== req.user.email) {
         return res.status(403).send({ message: "forbidden access" });
       }
+      let query = {};
       const email = req.query.email;
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+      const allItems = await cartCollection.find(query).toArray();
+
+      const totalPrice = allItems.reduce(
+        (total, item) => total + item.price * item.quantity,
+        0
+      );
+
+      const totalItems = await cartCollection.countDocuments(query);
       query = { email: email };
-      const result = await cartCollection.find(query).toArray();
-      res.send(result);
-      console.log("debugging", req.query.email, req.user.email);
+      const items = await cartCollection
+        .find(query)
+        .skip(skip)
+        .limit(limit)
+        .toArray();
+      res.send({
+        totalItems,
+        page,
+        limit,
+        totalPrice,
+        items,
+      });
     });
 
     app.get("/cart/:id", verifyToken, async (req, res) => {
