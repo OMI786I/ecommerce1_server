@@ -261,9 +261,21 @@ async function run() {
         }
       }
 
-      const cursor = accessoriesCollection.find(query);
+      const page = parseInt(req.query.page) || 1; //
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+      let sort = { price: 1 };
+      const totalDocuments = await accessoriesCollection.countDocuments(query);
+      const order = req.query.sortOrder === "asc" ? 1 : -1;
+      sort = { price: order };
+
+      const cursor = accessoriesCollection
+        .find(query)
+        .sort(sort)
+        .skip(skip)
+        .limit(limit);
       const result = await cursor.toArray();
-      res.send(result);
+      res.send({ totalDocuments, result });
     });
 
     app.get("/accessories/:id", async (req, res) => {
@@ -291,9 +303,21 @@ async function run() {
         }
       }
 
-      const cursor = bagCollection.find(query);
+      const page = parseInt(req.query.page) || 1; //
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+      let sort = { price: 1 };
+      const totalDocuments = await bagCollection.countDocuments(query);
+      const order = req.query.sortOrder === "asc" ? 1 : -1;
+      sort = { price: order };
+
+      const cursor = bagCollection
+        .find(query)
+        .sort(sort)
+        .skip(skip)
+        .limit(limit);
       const result = await cursor.toArray();
-      res.send(result);
+      res.send({ totalDocuments, result });
     });
 
     app.get("/bags/:id", async (req, res) => {
@@ -320,10 +344,20 @@ async function run() {
           query.price.$lte = parseFloat(req.query.maxPrice);
         }
       }
-
-      const cursor = shoeCollection.find(query);
+      const page = parseInt(req.query.page) || 1; //
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+      let sort = { price: 1 };
+      const totalDocuments = await shoeCollection.countDocuments(query);
+      const order = req.query.sortOrder === "asc" ? 1 : -1;
+      sort = { price: order };
+      const cursor = shoeCollection
+        .find(query)
+        .sort(sort)
+        .skip(skip)
+        .limit(limit);
       const result = await cursor.toArray();
-      res.send(result);
+      res.send({ totalDocuments, result });
     });
     app.get("/shoes/:id", async (req, res) => {
       const id = req.params.id;
