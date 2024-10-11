@@ -402,6 +402,28 @@ async function run() {
       res.send(result);
     });
 
+    app.patch("/user/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updatedUser = req.body;
+
+      const user = {
+        $set: {
+          name: updatedUser.name,
+          image: updatedUser.image,
+          phone: updatedUser.phone,
+          gender: updatedUser.gender,
+          dob: updatedUser.dob,
+          website: updatedUser.website,
+        },
+      };
+
+      const result = await userCollection.updateOne(filter, user, options);
+      res.send(result);
+      console.log(result);
+    });
+
     app.post("/user/check", async (req, res) => {
       const { email } = req.body;
       try {
