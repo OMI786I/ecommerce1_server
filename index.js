@@ -64,7 +64,7 @@ async function run() {
       .collection("accessories");
     const wishListCollection = client.db("ecommerce1").collection("wishList");
     const cartCollection = client.db("ecommerce1").collection("cart");
-
+    const reviewCollection = client.db("ecommerce1").collection("review");
     //auth related apis
     app.post("/jwt", logger, async (req, res) => {
       const user = req.body;
@@ -86,6 +86,25 @@ async function run() {
       res.clearCookie("token", { maxAge: 0 }).send({ success: true });
     });
     //services related apis
+    // Review
+
+    app.post("/review", async (req, res) => {
+      const review = req.body;
+      console.log("review", review);
+      const result = await reviewCollection.insertOne(review);
+      res.send(result);
+    });
+
+    app.get("/review", async (req, res) => {
+      let query = {};
+      if (req.query?.email) {
+        query = { email: req.query.email };
+      }
+
+      const cursor = reviewCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
 
     // cart
 
@@ -126,7 +145,9 @@ async function run() {
         return res.status(403).send({ message: "forbidden access" });
       }
       let query = {};
+
       const email = req.query.email;
+      query = { email: email };
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
       const skip = (page - 1) * limit;
@@ -138,7 +159,7 @@ async function run() {
       );
 
       const totalItems = await cartCollection.countDocuments(query);
-      query = { email: email };
+
       const items = await cartCollection
         .find(query)
         .skip(skip)
@@ -416,6 +437,7 @@ async function run() {
           gender: updatedUser.gender,
           dob: updatedUser.dob,
           website: updatedUser.website,
+          location: updatedUser.location,
         },
       };
 
