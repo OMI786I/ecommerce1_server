@@ -403,7 +403,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/user", async (req, res) => {
+    app.get("/user", verifyToken, async (req, res) => {
       let query = {};
       if (req.query?.email) {
         query = { email: req.query.email };
@@ -475,6 +475,24 @@ async function run() {
       };
       const result = await userCollection.updateOne(filter, updatedDoc);
       res.send(result);
+    });
+
+    //check whether a user is admin or not
+
+    app.get("/user/admin/:email", verifyToken, async (req, res) => {
+      const email = req.params.email;
+      if (email !== req.user.email) {
+        return res.status(403).send({ message: "unauthorized access" });
+      }
+
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      let admin = false;
+      if (user) {
+        admin = user?.role === "admin";
+      }
+
+      res.send({ admin });
     });
 
     // Connect the client to the server	(optional starting in v4.7)
