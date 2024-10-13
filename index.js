@@ -65,7 +65,20 @@ async function run() {
     const wishListCollection = client.db("ecommerce1").collection("wishList");
     const cartCollection = client.db("ecommerce1").collection("cart");
     const reviewCollection = client.db("ecommerce1").collection("review");
+
     //auth related apis
+
+    const verifyAdmin = async (req, res, next) => {
+      const email = req.user.email;
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      const isAdmin = user?.role === "admin";
+      if (!isAdmin) {
+        return res.status(403).send({ message: "forbidden access" });
+      }
+      next();
+    };
+
     app.post("/jwt", logger, async (req, res) => {
       const user = req.body;
       console.log(user);
@@ -403,7 +416,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/user", verifyToken, async (req, res) => {
+    app.get("/user", verifyToken, verifyAdmin, async (req, res) => {
       let query = {};
       if (req.query?.email) {
         query = { email: req.query.email };
@@ -465,7 +478,7 @@ async function run() {
 
     // to make a user admin
 
-    app.patch("/user/admin/:id", async (req, res) => {
+    app.patch("/user/admin/:id", verifyToken, verifyToken, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updatedDoc = {
@@ -494,7 +507,7 @@ async function run() {
 
       res.send({ admin });
     });
-
+    // veryfy token & verify admin for delete
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
     // // Send a ping to confirm a successful connection
