@@ -278,6 +278,39 @@ async function run() {
       }
     });
 
+    //products summary
+    const getProductSum = async (collection) => {
+      const client = await MongoClient.connect(uri);
+      const coll = client.db("ecommerce1").collection(collection);
+      const cursor = coll.aggregate([
+        {
+          $group: {
+            _id: null,
+            counting: {
+              $sum: 1,
+            },
+          },
+        },
+      ]);
+      const result = await cursor.toArray();
+      return result[0];
+    };
+
+    app.get("/count", async (req, res) => {
+      try {
+        const shoesCount = await getProductSum("shoes");
+        const bagsCount = await getProductSum("bags");
+        const accessoriesCount = await getProductSum("accessories");
+
+        const totalProducts =
+          shoesCount.counting + bagsCount.counting + accessoriesCount.counting;
+
+        res.json({ totalProducts });
+      } catch (error) {
+        res.status(500).json({ error: "Failed to fetch product summary" });
+      }
+    });
+
     //accessories
     app.get("/accessories", async (req, res) => {
       let query = {};
@@ -416,7 +449,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/user", verifyToken, verifyAdmin, async (req, res) => {
+    app.get("/user", verifyToken, async (req, res) => {
       let query = {};
       if (req.query?.email) {
         query = { email: req.query.email };
@@ -427,7 +460,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/user/:id", async (req, res) => {
+    app.get("/user/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
 
@@ -478,7 +511,7 @@ async function run() {
 
     // to make a user admin
 
-    app.patch("/user/admin/:id", verifyToken, verifyToken, async (req, res) => {
+    app.patch("/user/admin/:id", verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updatedDoc = {
@@ -507,6 +540,14 @@ async function run() {
 
       res.send({ admin });
     });
+
+    app.delete("/user/:id", async (req, res) => {
+      const id = req.query.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await userCollection.deleteOne(query);
+      res.send(result);
+    });
+
     // veryfy token & verify admin for delete
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
