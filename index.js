@@ -280,7 +280,6 @@ async function run() {
 
     //products summary
     const getProductSum = async (collection) => {
-      const client = await MongoClient.connect(uri);
       const coll = client.db("ecommerce1").collection(collection);
       const cursor = coll.aggregate([
         {
@@ -342,7 +341,24 @@ async function run() {
         .skip(skip)
         .limit(limit);
       const result = await cursor.toArray();
-      res.send({ totalDocuments, result });
+      const type = ["wallet", "cosmetic"];
+      res.send({ totalDocuments, type, result });
+    });
+    app.post("/accessories", async (req, res) => {
+      const newList = req.body;
+      const result = accessoriesCollection.insertOne(newList);
+      res.send(result);
+    });
+
+    app.post("/bags", async (req, res) => {
+      const newList = req.body;
+      const result = bagCollection.insertOne(newList);
+      res.send(result);
+    });
+    app.post("/shoes", async (req, res) => {
+      const newList = req.body;
+      const result = shoeCollection.insertOne(newList);
+      res.send(result);
     });
 
     app.get("/accessories/:id", async (req, res) => {
@@ -384,7 +400,8 @@ async function run() {
         .skip(skip)
         .limit(limit);
       const result = await cursor.toArray();
-      res.send({ totalDocuments, result });
+      const type = ["luggage", "briefcases", "stylish"];
+      res.send({ totalDocuments, type, result });
     });
 
     app.get("/bags/:id", async (req, res) => {
@@ -423,8 +440,9 @@ async function run() {
         .sort(sort)
         .skip(skip)
         .limit(limit);
+      const type = ["men", "boots", "flip", "casual"];
       const result = await cursor.toArray();
-      res.send({ totalDocuments, result });
+      res.send({ totalDocuments, type, result });
     });
     app.get("/shoes/:id", async (req, res) => {
       const id = req.params.id;
