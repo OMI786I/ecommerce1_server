@@ -14,8 +14,10 @@ app.use(
   })
 );
 app.use(express.json());
+app.use(express.urlencoded());
 
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const { default: axios } = require("axios");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.ymyoldm.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -590,6 +592,67 @@ async function run() {
       const query = { _id: new ObjectId(id) };
       const result = await userCollection.deleteOne(query);
       res.send(result);
+    });
+
+    //payment related apis
+
+    app.post("/create-payment", async (req, res) => {
+      const paymentInfo = req.body;
+      console.log("payment info", paymentInfo);
+
+      const initialData = {
+        store_id: `${process.env.STOREID}`,
+        store_passwd: `${process.env.STOREPASS}`,
+        refer: "5B1F9DE4D82B6",
+        acct_no: "CUST_REF_01",
+        total_amount: paymentInfo.money,
+        currency: "EUR",
+        tran_id: "REF123",
+        success_url: "http://localhost:5000/success-payment",
+        cus_name: "Customer Name",
+        cus_email: "cust@yahoo.com",
+        cus_add1: "Dhaka",
+        cus_add2: "Dhaka",
+        cus_city: "Dhaka",
+        cus_state: "Dhaka",
+        cus_postcode: "1000",
+        cus_country: "Bangladesh",
+        cus_phone: "01711111111",
+        cus_fax: "01711111111",
+        ship_name: "Customer Name",
+        ship_add1: "Dhaka",
+        ship_add2: "Dhaka",
+        ship_city: "Dhaka",
+        ship_state: "Dhaka",
+        ship_postcode: "1000",
+        ship_country: "Bangladesh",
+        shipping_method: "NO",
+        product_name: "name",
+        product_category: "recharge",
+        product_profile: "telecom-vertical",
+        num_of_item: 1,
+        value_a: "ref001_A",
+        value_b: "ref002_B",
+        value_c: "ref003_C",
+        value_d: "ref004_D",
+      };
+      const response = await axios({
+        method: "POST",
+        url: "https://sandbox.sslcommerz.com/gwprocess/v4/invoice.php",
+        data: initialData,
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      });
+      console.log(response);
+      res.send({
+        payment_url: response.data.pay_url,
+      });
+    });
+
+    app.post("/success-payment", async (req, res) => {
+      const successData = req.body();
+      console.log("successData", successData);
     });
 
     // veryfy token & verify admin for delete
