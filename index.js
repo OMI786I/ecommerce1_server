@@ -344,18 +344,18 @@ async function run() {
       const type = ["wallet", "cosmetic"];
       res.send({ totalDocuments, type, result });
     });
-    app.post("/accessories", async (req, res) => {
+    app.post("/accessories", verifyToken, verifyAdmin, async (req, res) => {
       const newList = req.body;
       const result = accessoriesCollection.insertOne(newList);
       res.send(result);
     });
 
-    app.post("/bags", async (req, res) => {
+    app.post("/bags", verifyToken, verifyAdmin, async (req, res) => {
       const newList = req.body;
       const result = bagCollection.insertOne(newList);
       res.send(result);
     });
-    app.post("/shoes", async (req, res) => {
+    app.post("/shoes", verifyToken, verifyAdmin, async (req, res) => {
       const newList = req.body;
       const result = shoeCollection.insertOne(newList);
       res.send(result);
@@ -369,6 +369,18 @@ async function run() {
 
       res.send(result);
     });
+
+    app.delete(
+      "/accessories/:id",
+      verifyToken,
+      verifyAdmin,
+      async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await accessoriesCollection.deleteOne(query);
+        res.send(result);
+      }
+    );
 
     app.get("/bags", async (req, res) => {
       let query = {};
@@ -413,6 +425,13 @@ async function run() {
       res.send(result);
     });
 
+    app.delete("/bags/:id", verifyToken, verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await bagCollection.deleteOne(query);
+      res.send(result);
+    });
+
     app.get("/shoes", async (req, res) => {
       let query = {};
       if (req.query?.type) {
@@ -450,6 +469,13 @@ async function run() {
 
       const result = await shoeCollection.findOne(query);
 
+      res.send(result);
+    });
+
+    app.delete("/shoes/:id", verifyToken, verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await shoeCollection.deleteOne(query);
       res.send(result);
     });
 
