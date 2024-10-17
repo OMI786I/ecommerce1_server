@@ -67,7 +67,7 @@ async function run() {
     const wishListCollection = client.db("ecommerce1").collection("wishList");
     const cartCollection = client.db("ecommerce1").collection("cart");
     const reviewCollection = client.db("ecommerce1").collection("review");
-
+    const paymentCollection = client.db("ecommerce1").collection("payment");
     //auth related apis
 
     const verifyAdmin = async (req, res, next) => {
@@ -599,18 +599,18 @@ async function run() {
     app.post("/create-payment", async (req, res) => {
       const paymentInfo = req.body;
       console.log("payment info", paymentInfo);
-
+      const trxId = new ObjectId().toString();
       const initialData = {
         store_id: `${process.env.STOREID}`,
         store_passwd: `${process.env.STOREPASS}`,
         refer: "5B1F9DE4D82B6",
         acct_no: "CUST_REF_01",
         total_amount: paymentInfo.money,
-        currency: "EUR",
-        tran_id: "REF123",
+        currency: "USD",
+        tran_id: trxId,
         success_url: "http://localhost:5000/success-payment",
-        cus_name: "Customer Name",
-        cus_email: "cust@yahoo.com",
+        cus_name: paymentInfo.name,
+        cus_email: paymentInfo.email,
         cus_add1: "Dhaka",
         cus_add2: "Dhaka",
         cus_city: "Dhaka",
@@ -644,15 +644,45 @@ async function run() {
           "Content-Type": "application/x-www-form-urlencoded",
         },
       });
+
+      const saveData = {
+        customer_name: paymentInfo.name,
+        customer_email: paymentInfo.email,
+        paymentId: trxId,
+        amount: paymentInfo.money,
+        products: paymentInfo.products,
+        status: "Pending",
+      };
+      const save = await paymentCollection.insertOne(saveData);
+
+      if (save) {
+        res.send({
+          payment_url: response.data.pay_url,
+        });
+      }
+
       console.log(response);
-      res.send({
-        payment_url: response.data.pay_url,
-      });
     });
 
     app.post("/success-payment", async (req, res) => {
-      const successData = req.body();
+      const successData = req.body;
       console.log("successData", successData);
+      if (successData.status !== "VALID") {
+        throw new Error("Unauthorized payment");
+      }
+
+      const query = {
+        paymentId: successData.tran_id,
+      };
+
+      const update = {
+        $set: {
+          status: "success",
+        },
+      };
+
+      const updateData = await paymentCollection.updateOne(query, update);
+      console.log("updated", updateData);
     });
 
     // veryfy token & verify admin for delete
