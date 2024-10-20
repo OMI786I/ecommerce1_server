@@ -596,7 +596,7 @@ async function run() {
 
     //payment related apis
 
-    app.post("/create-payment", async (req, res) => {
+    app.post("/create-payment", verifyToken, async (req, res) => {
       const paymentInfo = req.body;
       console.log("payment info", paymentInfo);
       const trxId = new ObjectId().toString();
@@ -609,6 +609,8 @@ async function run() {
         currency: "USD",
         tran_id: trxId,
         success_url: "http://localhost:5000/success-payment",
+        fail_url: "http://localhost:5000/failure",
+        cancel_url: "http://localhost:5000/cancel",
         cus_name: paymentInfo.name,
         cus_email: paymentInfo.email,
         cus_add1: "Dhaka",
@@ -666,6 +668,7 @@ async function run() {
 
     app.post("/success-payment", async (req, res) => {
       const successData = req.body;
+      console.log(successData);
       console.log("successData", successData);
       if (successData.status !== "VALID") {
         throw new Error("Unauthorized payment");
@@ -682,7 +685,24 @@ async function run() {
       };
 
       const updateData = await paymentCollection.updateOne(query, update);
+      res.redirect(`http://localhost:5173/success/${req.body.tran_id}`);
       console.log("updated", updateData);
+    });
+
+    app.post("/failure", async (req, res) => {
+      const result = await paymentCollection.deleteOne({
+        paymentId: req.body.tran_id,
+      });
+
+      res.redirect(`http://localhost:5173/cart`);
+    });
+
+    app.post("/cancel", async (req, res) => {
+      const result = await paymentCollection.deleteOne({
+        paymentId: req.body.tran_id,
+      });
+
+      res.redirect(`http://localhost:5173/cart`);
     });
 
     // veryfy token & verify admin for delete
