@@ -528,7 +528,6 @@ async function run() {
           phone: updatedUser.phone,
           gender: updatedUser.gender,
           dob: updatedUser.dob,
-          website: updatedUser.website,
           location: updatedUser.location,
         },
       };
@@ -653,6 +652,7 @@ async function run() {
         paymentId: trxId,
         amount: paymentInfo.money,
         products: paymentInfo.products,
+        location: paymentInfo.location,
         status: "Pending",
       };
       const save = await paymentCollection.insertOne(saveData);
@@ -714,6 +714,20 @@ async function run() {
       });
 
       res.redirect(`http://localhost:5173/cart`);
+    });
+
+    // payment info related apis
+
+    app.get("/order", async (req, res) => {
+      let query = {};
+      if (req.query?.email) {
+        query = {
+          customer_email: req.query.email,
+        };
+      }
+      const result = paymentCollection.find(query);
+      const final = await result.toArray();
+      res.send(final);
     });
 
     // veryfy token & verify admin for delete
