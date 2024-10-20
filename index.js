@@ -668,7 +668,7 @@ async function run() {
 
     app.post("/success-payment", async (req, res) => {
       const successData = req.body;
-      console.log(successData);
+
       console.log("successData", successData);
       if (successData.status !== "VALID") {
         throw new Error("Unauthorized payment");
@@ -678,15 +678,26 @@ async function run() {
         paymentId: successData.tran_id,
       };
 
+      const paymentRecord = await paymentCollection.findOne({
+        paymentId: successData.tran_id,
+      });
+      const products = paymentRecord.products;
+      const query2 = {
+        _id: {
+          $in: products.map((id) => new ObjectId(id._id)),
+        },
+      };
+      const deleteResult = await cartCollection.deleteMany(query2);
+      console.log("products arra", products);
+
       const update = {
         $set: {
           status: "success",
         },
       };
-
       const updateData = await paymentCollection.updateOne(query, update);
       res.redirect(`http://localhost:5173/success/${req.body.tran_id}`);
-      console.log("updated", updateData);
+      console.log("updated", updateData, deleteResult);
     });
 
     app.post("/failure", async (req, res) => {
