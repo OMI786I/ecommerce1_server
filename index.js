@@ -654,6 +654,7 @@ async function run() {
         products: paymentInfo.products,
         location: paymentInfo.location,
         status: "Pending",
+        order_stepper: 0,
       };
       const save = await paymentCollection.insertOne(saveData);
 
