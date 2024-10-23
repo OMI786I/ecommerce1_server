@@ -719,7 +719,7 @@ async function run() {
 
     // payment info related apis
 
-    app.get("/order", async (req, res) => {
+    app.get("/order", verifyToken, async (req, res) => {
       let query = {};
       if (req.query?.email) {
         query = {
@@ -729,6 +729,29 @@ async function run() {
       const result = paymentCollection.find(query);
       const final = await result.toArray();
       res.send(final);
+    });
+
+    app.get("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await paymentCollection.findOne(query);
+      res.send(result);
+    });
+
+    app.patch("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updatedBody = req.body;
+
+      const body = {
+        $set: {
+          order_stepper: updatedBody.order_stepper,
+        },
+      };
+
+      const result = await paymentCollection.updateOne(query, body, options);
+      res.send(result);
     });
 
     // veryfy token & verify admin for delete
