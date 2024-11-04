@@ -68,6 +68,7 @@ async function run() {
     const cartCollection = client.db("ecommerce1").collection("cart");
     const reviewCollection = client.db("ecommerce1").collection("review");
     const paymentCollection = client.db("ecommerce1").collection("payment");
+    const historyCollection = client.db("ecommerce1").collection("history");
     //auth related apis
 
     const verifyAdmin = async (req, res, next) => {
@@ -760,6 +761,25 @@ async function run() {
       };
 
       const result = await paymentCollection.updateOne(query, body, options);
+      res.send(result);
+    });
+
+    //history related apis
+
+    app.post("/history", verifyToken, async (req, res) => {
+      const historyBody = req.body;
+      const result = await historyCollection.insertOne(historyBody);
+      res.send(result);
+    });
+
+    app.get("/history", verifyToken, async (req, res) => {
+      let query = {};
+      if (req.query?.customer_email) {
+        query = { customer_email: req.query.customer_email };
+      }
+
+      const cursor = historyCollection.find(query);
+      const result = await cursor.toArray();
       res.send(result);
     });
 
