@@ -313,6 +313,53 @@ async function run() {
       }
     });
 
+    //aggregation for searching one product from multiple collections
+
+    app.get("/search/:id", async (req, res) => {
+      const id = req.params.id;
+
+      const agg = [
+        {
+          $match: {
+            _id: new ObjectId(id),
+          },
+        },
+        {
+          $unionWith: {
+            coll: "accessories",
+            pipeline: [
+              {
+                $match: {
+                  _id: new ObjectId(id),
+                },
+              },
+            ],
+          },
+        },
+        {
+          $unionWith: {
+            coll: "bags",
+            pipeline: [
+              {
+                $match: {
+                  _id: new ObjectId(id),
+                },
+              },
+            ],
+          },
+        },
+      ];
+
+      try {
+        const cursor = shoeCollection.aggregate(agg);
+        const result = await cursor.toArray();
+
+        res.send(result);
+      } catch (error) {
+        console.error("Error connecting to MongoDB:", error);
+        res.status(500).json({ error: "Internal server error" });
+      }
+    });
     //accessories
     app.get("/accessories", async (req, res) => {
       let query = {};
@@ -598,7 +645,6 @@ async function run() {
 
     app.post("/create-payment", verifyToken, async (req, res) => {
       const paymentInfo = req.body;
-      console.log("payment info", paymentInfo);
       const trxId = new ObjectId().toString();
       const initialData = {
         store_id: `${process.env.STOREID}`,
@@ -656,6 +702,7 @@ async function run() {
         location: paymentInfo.location,
         status: "Pending",
         order_stepper: 0,
+        id: paymentInfo.id,
       };
       const save = await paymentCollection.insertOne(saveData);
 
