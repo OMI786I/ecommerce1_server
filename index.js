@@ -325,6 +325,9 @@ async function run() {
           },
         },
         {
+          $addFields: { source: "shoes" },
+        },
+        {
           $unionWith: {
             coll: "accessories",
             pipeline: [
@@ -332,6 +335,9 @@ async function run() {
                 $match: {
                   _id: new ObjectId(id),
                 },
+              },
+              {
+                $addFields: { source: "accessories" },
               },
             ],
           },
@@ -344,6 +350,9 @@ async function run() {
                 $match: {
                   _id: new ObjectId(id),
                 },
+              },
+              {
+                $addFields: { source: "bags" },
               },
             ],
           },
@@ -358,6 +367,41 @@ async function run() {
       } catch (error) {
         console.error("Error connecting to MongoDB:", error);
         res.status(500).json({ error: "Internal server error" });
+      }
+    });
+    app.patch("/search/:id", async (req, res) => {
+      const id = req.params.id;
+      const body = req.body;
+      const options = { upsert: true };
+      const filter = { _id: new ObjectId(id) };
+
+      let collection;
+      if (body.collection === "shoes") {
+        collection = shoeCollection;
+      } else if (body.collection === "accessories") {
+        collection = accessoriesCollection;
+      } else {
+        collection = bagCollection;
+      }
+
+      // Using `$push` to add a new review to the `reviews` array
+      const reviewUpdate = {
+        $push: {
+          reviews: body, // Assuming `body.review` is the new review object
+        },
+      };
+
+      try {
+        const result = await collection.updateOne(
+          filter,
+          reviewUpdate,
+          options
+        );
+        res.send(result);
+        console.log("Updated Document:", result);
+      } catch (error) {
+        console.error("Error updating review:", error);
+        res.status(500).send({ error: "Failed to update review" });
       }
     });
     //accessories
