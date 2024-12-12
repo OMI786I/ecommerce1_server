@@ -330,8 +330,6 @@ async function run() {
       } catch (error) {
         console.error("Error searching collections:", error);
         throw error;
-      } finally {
-        await client.close();
       }
     }
 
