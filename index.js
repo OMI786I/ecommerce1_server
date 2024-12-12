@@ -298,6 +298,58 @@ async function run() {
       return result[0];
     };
 
+    async function searchAcrossCollections(searchText) {
+      try {
+        const db = client.db("ecommerce1");
+        const collections = ["shoes", "bags", "accessories"];
+
+        const agg = [
+          {
+            $match: {
+              title: {
+                $regex: searchText,
+                $options: "i",
+              },
+            },
+          },
+        ];
+
+        const results = [];
+        for (const collectionName of collections) {
+          const coll = db.collection(collectionName);
+          const cursor = coll.aggregate(agg);
+          const collectionResults = await cursor.toArray();
+          results.push(
+            ...collectionResults.map((doc) => ({
+              ...doc,
+              collection: collectionName,
+            }))
+          );
+        }
+        return results;
+      } catch (error) {
+        console.error("Error searching collections:", error);
+        throw error;
+      } finally {
+        await client.close();
+      }
+    }
+
+    app.post("/searchText", async (req, res) => {
+      const searchText = req.body.search;
+
+      if (!searchText) {
+        return res.status(400).json({ error: "Search text is required" });
+      }
+      try {
+        const results = await searchAcrossCollections(searchText);
+        console.log(results);
+        res.json({ results });
+      } catch (error) {
+        res.status(500).json({ error: "Error searching collections" });
+      }
+    });
+
     app.get("/count", async (req, res) => {
       try {
         const shoesCount = await getProductSum("shoes");
@@ -384,10 +436,9 @@ async function run() {
         collection = bagCollection;
       }
 
-      // Using `$push` to add a new review to the `reviews` array
       const reviewUpdate = {
         $push: {
-          reviews: body, // Assuming `body.review` is the new review object
+          reviews: body,
         },
       };
 
