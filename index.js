@@ -9,7 +9,7 @@ let cookieParser = require("cookie-parser");
 app.use(cookieParser());
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: ["http://localhost:5173", "https://ecommerce1-b9d4f.web.app/"],
     credentials: true,
   })
 );
