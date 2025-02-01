@@ -747,9 +747,9 @@ async function run() {
         total_amount: paymentInfo.money,
         currency: "USD",
         tran_id: trxId,
-        success_url: "http://localhost:5000/success-payment",
-        fail_url: "http://localhost:5000/failure",
-        cancel_url: "http://localhost:5000/cancel",
+        success_url: "https://ecommerce1-server.vercel.app/success-payment",
+        fail_url: "https://ecommerce1-server.vercel.app/failure",
+        cancel_url: "https://ecommerce1-server.vercel.app/cancel",
         cus_name: paymentInfo.name,
         cus_email: paymentInfo.email,
         cus_add1: "Dhaka",
@@ -838,7 +838,9 @@ async function run() {
         },
       };
       const updateData = await paymentCollection.updateOne(query, update);
-      res.redirect(`http://localhost:5173/success/${req.body.tran_id}`);
+      res.redirect(
+        `https://ecommerce1-b9d4f.web.app/success/${req.body.tran_id}`
+      );
       console.log("updated", updateData, deleteResult);
     });
 
@@ -847,7 +849,7 @@ async function run() {
         paymentId: req.body.tran_id,
       });
 
-      res.redirect(`http://localhost:5173/cart`);
+      res.redirect(`https://ecommerce1-b9d4f.web.app/cart`);
     });
 
     app.post("/cancel", async (req, res) => {
@@ -855,7 +857,7 @@ async function run() {
         paymentId: req.body.tran_id,
       });
 
-      res.redirect(`http://localhost:5173/cart`);
+      res.redirect(`https://ecommerce1-b9d4f.web.app/cart`);
     });
 
     // payment info related apis
